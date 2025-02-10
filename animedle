@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="de">
+ 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece Wordle</title>
+    <style>
+             body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    margin: 0;
+    padding: 20px;
+}
+ 
+header {
+    background-color: #0056b3;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+ 
+.hint-button {
+    padding: 10px 20px;
+    background-color: #0056b3;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+ 
+.hint-button:hover {
+    background-color: #003d80;
+}
+ 
+table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 800px;
+    background-color: #2c2c2c;
+    border-radius: 10px;
+    overflow: hidden;
+}
+ 
+th, td {
+    border: 2px solid #444;
+    padding: 15px;
+    text-align: center;
+    font-size: 18px;
+}
+ 
+th {
+    background-color: #0056b3;
+    color: white;
+}
+ 
+.correct {
+    background-color: #28a745;
+    color: white;
+}
+ 
+.incorrect {
+    background-color: #dc3545;
+    color: white;
+}
+ 
+.warning {
+    background-color: orange;
+    color: black;
+}
+ 
+input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #444;
+    border-radius: 5px;
+    font-size: 18px;
+    background-color: #333;
+    color: white;
+}
+ 
+input[type="text"]:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+    </style>
+</head>
+ 
+<body>
+    <header>
+        <h1>One Piece Wordle</h1>
+        <p>Errate den heutigen Charakter aus One Piece!</p>
+    </header>
+ 
+    <input type="text" id="name" placeholder="Charaktername..." list="characterList">
+    <datalist id="characterList"></datalist>
+    <button class="hint-button" onclick="checkCharacter()">Überprüfen</button>
+ 
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>Bild</th>
+                <th>Charakter</th>
+                <th>Geschlecht</th>
+                <th>Zugehörigkeit</th>
+                <th>Teufelsfrucht</th>
+                <th>Haki</th>
+                <th>Kopfgeld</th>
+                <th>Größe</th>
+                <th>Herkunft</th>
+                <th>Erscheinungs-Arc</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+ 
+    <script>
+        const characters = {
+ 'Monkey D. Luffy': {bild: 'https://miro.medium.com/v2/resize:fit:736/1*YqfVlyCe06DfcPsR3kpYrw.jpeg', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾', '👑'], kopfgeld: '3 Mrd.', größe: 174, herkunft: 'EastBlue', arc: 'Romance Dawn' },
+ 'Vinsmoke Sanji': {bild: 'https://tm.ibxk.com.br//ms/images/highlights/000/053/998/50707.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '1 Mrd.', größe: 180, herkunft: 'NorthBlue', arc: 'Baratie' },
+ 'Roronoa Zoro': {bild: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCKHwBXZEZTI4ZKGirr-UCAs3tgtRtXgTnig&s', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '1,1 Mrd.', größe: 181, herkunft: 'EastBlue', arc: 'Romance Dawn' },
+ 'Nami': {bild: 'https://www.animenachrichten.de/wp-content/uploads/2019/03/nami-1064456-1280x0.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '366 Mio.', größe: 170, herkunft: 'EastBlue', arc: 'Orange Town' },
+ 'Usopp': {bild: 'https://i.pinimg.com/736x/91/11/97/911197c1ed4c2596d8d59b93668667af.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '500 Mio.', größe: 176, herkunft: 'EastBlue', arc: 'Syrup Village' },
+ 'Tony Tony Chopper': {bild: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNS2MpusGaKdDcaNxnAKvZ4DuRYpY7U62RDCx4xQ1ZGfqzlwo4D57tgMcaJKPWDxNqikA&usqp=CAU', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Zoan', haki: ['❌'], kopfgeld: '1000', größe: 90, herkunft: 'Grand Line', arc: 'Drum Island' },
+ 'Nico Robin': {bild: 'https://preview.redd.it/nico-robins-3rd-wano-outfit-thoughts-v0-we59wss540981.jpg?width=582&format=pjpg&auto=webp&s=37a91a0dfd513e4b49be22ad28ea143e20d9fb0f', geschlecht: 'Weiblich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '930 Mio.', größe: 188, herkunft: 'WestBlue', arc: 'Whisky Peak' },
+ 'Franky': {bild: 'https://pbs.twimg.com/media/GIOivCuWkAAKjbF.jpg:large', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '394 Mio.', größe: 240, herkunft: 'Southblue', arc: 'Water 7' },
+ 'Brook': {bild: 'https://i.pinimg.com/736x/7d/f8/b1/7df8b1fb65856e648d2bf5a8abe1edab.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '383 Mio.', größe: 277, herkunft: 'West Blue', arc: 'Thriller Bark' },
+ 'Jinbe': {bild: 'https://static.wikia.nocookie.net/onepiece-fairytail/images/6/6d/Jinbe.png/revision/latest?cb=20160814214503', geschlecht: 'Männlich', zugehörigkeit: 'Strohhut Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '1,1 Mrd.', größe: 301, herkunft: 'Grand Line', arc: 'Impel Down' },
+ 'Portgas D. Ace': {bild: 'https://th.bing.com/th/id/R.9aad466a60ce1141dfc9ee9523b91303?rik=sNBnqmP1j4HX1A&riu=http%3a%2f%2fpm1.aminoapps.com%2f8712%2fc63161aba10cea608dac73569e6e8eafdafb394er1-587-579v2_uhq.jpg&ehk=uKEYqM1xVibTJqxvc1fUv4nkDa4Q60tDp3inQtizE44%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Whitebeard Piraten', teufelsfrucht: 'Logia', haki: ['👁️', '🦾', '👑'], kopfgeld: '550 Mio.', größe: 185, herkunft: 'Southblue', arc: 'Drum Island' },
+ 'Borsalino': {bild: 'https://static.wikia.nocookie.net/onepiece/images/2/25/Kizaru_Sabaody.jpg/revision/latest?cb=20090803171152&path-prefix=de', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '3 Mrd.', größe: 302, herkunft: 'Northblue', arc: 'Sabaody Archipelago' },
+ 'Arlong': {bild: 'https://vignette.wikia.nocookie.net/onepiece/images/0/02/Arlong_Portrait.png/revision/latest?cb=20160630105440&path-prefix=fr', geschlecht: 'Männlich', zugehörigkeit: 'Arlong-Bande', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '20 Mio.', größe: 263, herkunft: 'Grand Line', arc: 'Arlong Park' },
+ 'Ashura Doji': {bild: 'https://th.bing.com/th/id/OIP.Mx9hEhe8o7C4RmLUljkMlgHaHa?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Atamayama Diebesbande', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 544, herkunft: 'Grand Line', arc: 'Wano Country' },
+ 'Kaku': {bild: 'https://static.voicedub.ai/models/dbc7b9ea-9b81-4abd-8c04-baf6a6bd4846/dbc7b9ea-9b81-4abd-8c04-baf6a6bd4846.webp', geschlecht: 'Männlich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 193, herkunft: 'Eastblue', arc: 'Water 7' },
+ 'Trafalgar D. Water Law': {bild: 'https://i.pinimg.com/originals/81/04/77/8104777e2ac459d09b8ae8129a5e39cc.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Heart Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '3 Mrd.', größe: 191, herkunft: 'Northblue', arc: 'Sabaody Archipelago' },
+ 'Edward Newgate': {bild: 'https://i.pinimg.com/736x/2e/2c/fe/2e2cfee439d431f17f67bd13bce4c49a.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Whitebeard Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '5 Mrd.', größe: 666, herkunft: 'Grand Line', arc: 'Arabasta' },
+ 'Emporio Ivankov': {bild: 'https://vignette.wikia.nocookie.net/onepiece/images/d/de/Emporio_Ivankov_Anime_Infobox.png/revision/latest?cb=20150831191812&path-prefix=pt', geschlecht: 'Männlich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '100 Mio.', größe: 449, herkunft: 'Grand Line', arc: 'Impel Down' },
+ 'Wiper': {bild: 'https://www.nautiljon.com/images/perso/00/96/wiper_1269.jpg?1536335973', geschlecht: 'Männlich', zugehörigkeit: 'Shandia', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 183, herkunft: 'Skypiea', arc: 'Skypiea' },
+ 'Wanda': {bild: 'https://th.bing.com/th/id/R.0cc1911c3ebe0c47d6facd62bb41f02e?rik=wmxxU4PtBtpt5w&riu=http%3a%2f%2fpm1.narvii.com%2f6234%2faed445d84d9f965468558ba951bd97057bd5b265_hq.jpg&ehk=8rqHrXzjSBbee%2f21fQEVy8En1b4MuLvwAWuZ5xA9u6M%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Weiblich', zugehörigkeit: 'Mokomo Herzogtum', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 181, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Eustass Kid': {bild: 'https://th.bing.com/th/id/OIP.KQbt9HZ_TjJSnHWhCXiwoAAAAA?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Kid Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '3 Mrd.', größe: 205, herkunft: 'Southblue', arc: 'Sabaody Archipelago' }, 
+ 'Enel': {bild: 'https://th.bing.com/th/id/R.af11176a38a57e29f024703871adb67a?rik=0BFBUkpk2gLGdg&riu=http%3a%2f%2fimg2.wikia.nocookie.net%2f__cb20131212015841%2fonepiece%2fimages%2f0%2f04%2fEnel_Shocked_Face.png&ehk=2leCHVCgn8EIjbWnBQC9gZ%2fNfrqsWTFQGLhgNvEc2ds%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Automaten', teufelsfrucht: 'Logia', haki: ['👁️'], kopfgeld: '0', größe: 266, herkunft: 'Skypiea', arc: 'Skypiea' }, 
+ 'Kurozumi Kanjuro': {bild: 'https://www.anime-planet.com/images/characters/kanjuro-83755.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Kurozumi Familie', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 347, herkunft: 'Unbekannt', arc: 'Dressrosa' }, 
+ 'Shanks': {bild: 'https://i.pinimg.com/originals/55/1e/0d/551e0d5637a569d84ec35d099c5d5b9d.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Rothaar Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '4 Mrd.', größe: 199, herkunft: 'Westblue', arc: 'Romance Dawn' }, 
+ 'Sabo': {bild: 'https://rare-gallery.com/mocahbig/435098-One-Piece-anime-anime-boys-anime-men-Sabo.png', geschlecht: 'Männlich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '602 Mio.', größe: 187, herkunft: 'Eastblue', arc: 'Post-War' }, 
+ 'Smoker': {bild: 'https://animeargentina.net/wp-content/uploads/2024/03/smoker-rostro-min-1024x576.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 209, herkunft: 'Grand Line', arc: 'Loguetown' }, 
+ 'Kaido': {bild: 'https://i.pinimg.com/736x/37/c5/4e/37c54ea847624536126e526146d11b98.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Bestien Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾', '👑'], kopfgeld: '4,6 Mrd.', größe: 710, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Shirahoshi': {bild: 'https://th.bing.com/th/id/OIP.aCKcoHassnv9HL0O0K0O1wHaE8?rs=1&pid=ImgDetMain', geschlecht: 'Weiblich', zugehörigkeit: 'Neptun Familie', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '0', größe: 1187, herkunft: 'Grandline', arc: 'Fish-Man Island' }, 
+ 'Silvers Rayleigh': {bild: 'https://64.media.tumblr.com/0c6a3cb4d302d53921a0b85c696fed3c/e7f8db769968e3b3-82/s540x810/918e7665d1c3431496e2a5bdc979bb2b6a1e53d8.gif', geschlecht: 'Männlich', zugehörigkeit: 'Roger Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '0', größe: 188, herkunft: 'Unbekannt', arc: 'Orange Town' }, 
+ 'Sakazuki (Akainu)': {bild: 'https://th.bing.com/th/id/R.7a748b77890e1f11fd176a6086d13483?rik=7DP6ugyrytcu5A&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 306, herkunft: 'Northblue', arc: 'Enies Lobby' }, 
+ 'Kikunojo': {bild: 'https://staticg.sportskeeda.com/editor/2023/05/d2e95-16841322663866-1920.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Familie', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 287, herkunft: 'Grandline', arc: 'Wano Country' }, 
+ 'Marshall D. Teach': {bild: 'https://a-static.besthdwallpaper.com/one-piece-marshall-d-teach-wallpaper-2160x1440-8436_40.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Blackbeard Piraten', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '4 Mrd.', größe: 344, herkunft: 'Grand Line', arc: 'Jaya' }, 
+ 'Killer': {bild: 'https://imagecdn.voicify.ai/models/f581acef-5970-4d3b-8b13-1080abf159b2.png', geschlecht: 'Männlich', zugehörigkeit: 'Kid Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '200 Mio.', größe: 195, herkunft: 'Southblue', arc: 'Sabaody Archipelago' }, 
+ 'Senor Pink': {bild: 'https://th.bing.com/th/id/OIP.iYQjSCSS1o-VlMOUI91sogHaIn?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '58 Mio.', größe: 244, herkunft: 'Northblue', arc: 'Dressrosa' }, 
+ 'Charlotte Mont D´Or': {bild: 'https://vignette.wikia.nocookie.net/onepiece/images/3/31/Charlotte_Mont-d%27Or_Portrait.png/revision/latest?cb=20180122151911', geschlecht: 'Männlich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '120 Mio.', größe: 260, herkunft: 'Grandline', arc: 'Whole Cake Island' }, 
+ 'Spandam': {bild: 'https://th.bing.com/th/id/OIP.SY-T7OGGAQDsWFtx7K14HAAAAA?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 192, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Sengoku': {bild: 'https://th.bing.com/th/id/OIP.qfCeuqXTEMJjyDtTPwY2rAHaFg?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾', '👑'], kopfgeld: '0', größe: 278, herkunft: 'Southblue', arc: 'Jaya' }, 
+ 'Yamato': {bild: 'https://i.pinimg.com/originals/50/be/03/50be03315e93a5ce7adc9a8ee9ae94f2.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Ninja-Piraten-Mink-Samurai-Allianz', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾', '👑'], kopfgeld: '0', größe: 263, herkunft: 'Unbekannt', arc: 'Wano Country' }, 
+ 'X Drake': {bild: 'https://th.bing.com/th/id/OIP.bD2UOLkKV5uUwow6U7P8dgAAAA?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '222 Mio.', größe: 233, herkunft: 'Northblue', arc: 'Sabaody Archipelago' }, 
+ 'Donquixote Doflamingo': {bild: 'https://images6.fanpop.com/image/photos/43400000/doflamingo-one-piece-43499831-768-960.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '340 Mio.', größe: 305, herkunft: 'Red Line', arc: 'Jaya' }, 
+ 'Buggy': {bild: 'https://th.bing.com/th/id/R.0f6a01c3cc9e9711300a68b699b038be?rik=HPLl7QtoQg4XRw&riu=http%3a%2f%2fmisiontokyo.com%2fwp-content%2fuploads%2f2018%2f05%2fBuggy_Anime_Post_Timeskip_Infobox.png&ehk=OWX6qEKMGVw178sOAiU2G0TmUqnVFXp%2fEAQorHtJiHA%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '3,2Mrd.', größe: 192, herkunft: 'Grand Line', arc: 'Orange Town' }, 
+ 'Dracule Mihawk': {bild: 'https://animesweet.com/img/2021/one-piece-mihawk-is-the-strongest-swordsman-in-the-turbo-jet-studio-figure.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '3,6 Mrd.', größe: 198, herkunft: 'Unbekannt', arc: 'Baratie' }, 
+ 'Gol D. Roger': {bild: 'https://wallpapercave.com/wp/wp6593355.png', geschlecht: 'Männlich', zugehörigkeit: 'Roger Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '5,6 Mrd.', größe: 274, herkunft: 'Eastblue', arc: 'Romance Dawn' }, 
+ 'Donquixote Rosinante': {bild: 'https://lh5.googleusercontent.com/Q0Z3uHeo-BPZVmYlNRyq20Uq0siW1R3VWse95hE2e9g-g2wJwshTdglUPjbvqYi5vk4yM8M904851lGKpmRalzRj_lw5pRvWsDC1qnF_tuWBlgt0O5EK6AbFAyiVDW9oWIR30OsTC27or6PH0x66rFYg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 293, herkunft: 'Red Line', arc: 'Dressrosa' }, 
+ 'Monkey D. Garp': {bild: 'https://wallpapercave.com/wp/wp2365467.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '3 Mrd.', größe: 287, herkunft: 'Eastblue', arc: 'Arlong Park' }, 
+ 'Monkey D. Dragon': {bild: 'https://static1.cbrimages.com/wordpress/wp-content/uploads/2023/10/monkey-d-dragon-one-piece-1.jpeg', geschlecht: 'Männlich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 256, herkunft: 'Eastblue', arc: 'Loguetown' }, 
+ 'Denjiro': {bild: 'https://th.bing.com/th/id/OIP.toKP5Q_oMjqKWfqYumVDjgHaIL?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 306, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Oars': {bild: 'https://animeargentina.net/wp-content/uploads/2022/10/oars-sombrero-de-paja-1024x574.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Thriller Bark Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 670, herkunft: 'Northblue', arc: 'Thriller Bark' }, 
+ 'Kyros': {bild: 'https://comic-kingdom.jp/wp-content/uploads/2019/12/686-3-768x435.png', geschlecht: 'Männlich', zugehörigkeit: 'Riku Familie', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 298, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Inuarashi': {bild: 'https://www.nautiljon.com/images/perso/00/23/inuarashi_17832.jpg?0', geschlecht: 'Männlich', zugehörigkeit: 'Mokomo Herzogtum', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 511, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Gal Dino (Mr.3)': {bild: 'https://th.bing.com/th/id/R.3f269bfb0d00370f9e30719009eda56a?rik=QuEGfWMHkcdSMw&riu=http%3a%2f%2fmyanimelist.net%2fimages%2fcharacters%2f16%2f50174.jpg&ehk=p4m9jGOI3%2bw%2fuXKxFdIjnFO5gFj7gKcOUEkswczn2pY%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '24 Mio.', größe: 179, herkunft: 'Southblue', arc: 'Little Garden' }, 
+ 'Bellamy': {bild: 'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/d3f6c26d-2f68-431d-a66f-544d2c4756cd/dfoot3n-7c8996d2-7caf-44c8-ad28-c5b742188176.jpg/v1/fill/w_657,h_677,q_75,strp/bellamy_face_by_masterchristian_dfoot3n-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9Njc3IiwicGF0aCI6IlwvZlwvZDNmNmMyNmQtMmY2OC00MzFkLWE2NmYtNTQ0ZDJjNDc1NmNkXC9kZm9vdDNuLTdjODk5NmQyLTdjYWYtNDRjOC1hZDI4LWM1Yjc0MjE4ODE3Ni5qcGciLCJ3aWR0aCI6Ijw9NjU3In1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.wk7xARLSUTfCyn08ix7K5r6X6LvM1dHTwy7cXFFBgFc', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '195 Mio.', größe: 240, herkunft: 'Northblue', arc: 'Jaya' }, 
+ 'Capone Bege': {bild: 'https://th.bing.com/th/id/R.7b8aca4bc647e7bf63cb43603b14f302?rik=mpZTu8qCjuFfDQ&riu=http%3a%2f%2fvignette1.wikia.nocookie.net%2fonepiece%2fimages%2fb%2fb2%2fCapone_Bege_Anime_Pre_Timeskip_Infobox.png%2frevision%2flatest%2fscale-to-width-down%2f270%3fcb%3d20150709230550&ehk=V8KpiGOyF%2bGpdRgAJAfdVKj2Of7KBj9FCTmY%2bUfmRpE%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Fire-Tank Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '350 Mio.', größe: 166, herkunft: 'Westblue', arc: 'Sabaody Archipelago' }, 
+ 'Don Krieg': {bild: 'https://i.pinimg.com/736x/7c/36/9a/7c369a8e727928dea9485958b0913319.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Krieg Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '17 Mio.', größe: 243, herkunft: 'Eastblue', arc: 'Baratie' }, 
+ 'Daz Bones': {bild: 'https://th.bing.com/th/id/R.7d4c64140cb270de3c41534fa024be35?rik=RyzwOwTlAu9OlQ&riu=http%3a%2f%2fpm1.aminoapps.com%2f6294%2f624bc99cd4b55499990019de2121fc5a8bc094a6_00.jpg&ehk=w0fe3Ers%2bSYZEhkMt3eJFb5GLKi3OVsi4KmdL7x1kmY%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '75 Mio.', größe: 212, herkunft: 'Westblue', arc: 'Arabasta' }, 
+ 'Dr. Kureha': {bild: 'https://static.tvmaze.com/uploads/images/medium_portrait/419/1049450.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Sakura Königreich', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 188, herkunft: 'Grand Line', arc: 'Drum Island' }, 
+ 'Mont Blanc Noland': {bild: 'https://th.bing.com/th/id/OIP.WSIMfVg79nXU_j-FyJ1BVgHaGH?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Lvneel', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 220, herkunft: 'Northblue', arc: 'Skypiea' }, 
+ 'Diamante': {bild: 'https://www.serieously.com/app/uploads/2022/07/diamente-one-piece-galerie.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '99 Mio.', größe: 525, herkunft: 'Northblue', arc: 'Dressrosa' }, 
+ 'Dorry': {bild: 'https://www.nautiljon.com/images/perso/00/21/dorry_212.jpg?1479226354', geschlecht: 'Männlich', zugehörigkeit: 'Riesenkrieger Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '100 Mio.', größe: 2260, herkunft: 'Grand Line', arc: 'Little Garden'},
+ 'Brogy': {bild: 'https://cdn.kurenai.com/wiki/tTyu63kCM1M/600x600.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Riesenkrieger Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '100 Mio.', größe: 2130, herkunft: 'Grand Line', arc: 'Little Garden' }, 
+ 'Carrot': {bild: 'https://th.bing.com/th/id/OIP.0rIOGm-EvkTeSWp-Cze_jwHaOB?rs=1&pid=ImgDetMain', geschlecht: 'Weiblich', zugehörigkeit: 'Mokomo Herzogtum', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 161, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Charlotte Katakuri': {bild: 'https://i.pinimg.com/originals/82/09/38/820938f590f222b9a81f11b7b5f1e3b9.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '1,1 Mrd.', größe: 509, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Charlotte Pudding': {bild: 'https://vignette.wikia.nocookie.net/onepiece/images/d/d8/Vraie_nature_de_Pudding.png/revision/latest?cb=20171210164856&path-prefix=fr', geschlecht: 'Weiblich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 166, herkunft: 'Grand Line', arc: 'Fish-Man Island' }, 
+ 'Crocodile': {bild: 'https://wallpaperaccess.com/full/3022822.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '2 Mrd.', größe: 253, herkunft: 'Grand Line', arc: 'Little Garden' }, 
+ 'Koby': {bild: 'https://criticalhits.com.br/wp-content/uploads/2019/04/koby-1.webp', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '500 Mio.', größe: 167, herkunft: 'Eastblue', arc: 'Romance Dawn' }, 
+ 'Cavendish': {bild: 'https://th.bing.com/th/id/OIP.z-kTrSAXw3x08goPdM0A_wHaEK?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Beautiful Piraten', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '330 Mio.', größe: 208, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Rob Lucci': {bild: 'https://i.pinimg.com/originals/a8/c9/20/a8c92054ff5dce55d93f6116d50d8351.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 212, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Vinsmoke Reiju': {bild: 'https://pm1.narvii.com/6501/7af80d80c78b056ce7a00fd1d4300082c085d857_hq.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Vinsmoke Familie', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 173, herkunft: 'Northblue', arc: 'Whole Cake Island' }, 
+ 'Rebecca': {bild: 'https://th.bing.com/th/id/OIP._klA6pvV-l6JmwxVdurgcQHaHa?rs=1&pid=ImgDetMain', geschlecht: 'Weiblich', zugehörigkeit: 'Dressrosa', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '0', größe: 171, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Zeff': {bild: 'https://1.bp.blogspot.com/-5WcdSiMroS4/XeZPElNXWdI/AAAAAAAACYk/LDjAevSFQgEm7RkBlSdTLhvF0LuLwPL-QCLcBGAsYHQ/s1600/1-1.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Baratié', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 189, herkunft: 'Eastblue', arc: 'Baratie' }, 
+ 'Nekomamushi': {bild: 'https://blogger.googleusercontent.com/img/a/AVvXsEj4DrmeZI4tgD18jzDL3Yu9dU6M9hnq1Y26YF0D0qVfTCcAF2pCF-l2jkhsA-BBFgltEKJEtoQTXhsdYkUHzftzR8Fl2dltUVmcYPioYKWDO7845k5Q9rIqiVAlR0JqiTZ-e_FCJSMlrRFOMRyx3WphESU2O07vYhUcFm3jIIOmSH3JvwiV9NWLRWZO=w1200-h630-p-k-no-nu', geschlecht: 'Männlich', zugehörigkeit: 'Mokomo Herzogtum', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 522, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Raizo': {bild: 'https://th.bing.com/th/id/OIP.8Fiz84yYUs10ifGEbXwXugHaJB?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 311, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Ryūma': {bild: 'https://i.pinimg.com/736x/cb/ef/71/cbef71dfed4d677e1083204782460e82.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Thriller Bark Piraten', teufelsfrucht: 'Keine', haki: ['🦾'], kopfgeld: '0', größe: 179, herkunft: 'Grand Line', arc: 'Thriller Bark' }, 
+ 'Kuzan': {bild: 'https://cdn.alfabetajuega.com/alfabetajuega/2024/08/kuzan-se-ha-convertido-en-uno-de-los-comandantes-de-barbanegra.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Blackbeard Piraten', teufelsfrucht: 'Logia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 298, herkunft: 'Southblue', arc: 'Long Ring Long Land' }, 
+ 'Pell': {bild: 'https://th.bing.com/th/id/OIP.87CuOtveK6VIeibY8w6z4QHaFj?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Alabasta Königreich', teufelsfrucht: 'Zoan', haki: ['❌'], kopfgeld: '0', größe: 189, herkunft: 'Grand Line', arc: 'Alabasta' }, 
+ 'Foxy': {bild: 'https://th.bing.com/th/id/OIP.3DRXJTZsYpReN8Jv3K8M4AHaEK?rs=1&pid=ImgDetMain', geschlecht: 'Männlich', zugehörigkeit: 'Foxy Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '24 Mio.', größe: 180, herkunft: 'Southblue', arc: 'Long Ring Long Land' }, 
+ 'Charlotte Linlin': {bild: 'https://assets.mycast.io/characters/big-mom-6153615-normal.jpg?1648622344', geschlecht: 'Weiblich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '4,4 Mrd.', größe: 880, herkunft: 'Grand Line', arc: 'Fish-Man Island' }, 
+ 'Caesar Crown': {bild: 'https://th.bing.com/th/id/R.8b445c20b211d446e30b1177ef0f0e61?rik=W5CZYAQtrspGhA&riu=http%3a%2f%2fpm1.narvii.com%2f5987%2ffd5a9ea74f8a461a513838d068d20da3346af81e_hq.jpg&ehk=FULUegvPpRKktnVfCds3TZ0XYvLhgiY3Kn2htIoZTzM%3d&risl=&pid=ImgRaw&r=0', geschlecht: 'Männlich', zugehörigkeit: 'Germa', teufelsfrucht: 'Logia', haki: ['❌'], kopfgeld: '300 Mio.', größe: 309, herkunft: 'Grand Line', arc: 'Punk Hazard' }, 
+ 'Califa': {bild: 'https://i.pinimg.com/736x/ad/d8/c6/add8c6e1dc69b60fa98a84e0390ddbb0.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 185, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Charlotte Perospero': {bild: 'https://i.pinimg.com/736x/7c/fa/9e/7cfa9e8fe945d611e7d9e4ef965d9534.jpgy', geschlecht: 'Männlich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '700 Mio.', größe: 333, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Caimie': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Takoyaki 8', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 197, herkunft: 'Grand Line', arc: 'Sabaody Archipelago' }, 
+ 'Charlotte Brulee': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 350, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Caribou': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Caribu Piraten', teufelsfrucht: 'Logia', haki: ['Keine'], kopfgeld: '210 Mio.', größe: 228, herkunft: 'Northblue', arc: 'Return to Sabaody' }, 
+ 'Mont Blanc Cricket': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Saruyama Allianz', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '25 Mio.', größe: 242, herkunft: 'Northblue', arc: 'Jaya' }, 
+ 'Charlotte Chiffon': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Fire-Tank Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 215, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Nefertari Vivi': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Alabasta Königreich', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 169, herkunft: 'Grand Line', arc: 'Reverse Mountain' }, 
+ 'Jewelry Bonney': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Bonney Piraten', teufelsfrucht: 'Paramecia', haki: ['🦾'], kopfgeld: '140 Mio.', größe: 174, herkunft: 'Southblue', arc: 'Sabaody Archipelago' }, 
+ 'Viola': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Riku Familie', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 178, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Vinsmoke Judge': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Vinsmoke Familie', teufelsfrucht: 'Keine', haki: ['🦾'], kopfgeld: '0', größe: 272, herkunft: 'Northblue', arc: 'Whole Cake Island' }, 
+ 'Tashigi': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 170, herkunft: 'Eastblue', arc: 'Loguetown' }, 
+ 'Pedro': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Mokomo Herzogtum', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '382 Mio.', größe: 233, herkunft: 'Grand Line', arc: 'Zou' }, 
+ 'Isshō': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 270, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Kurozumi Tama': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Kurozumi Familie', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 108, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Bartholomew Kuma': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Paramecia', haki: ['🦾'], kopfgeld: '296 Mio.', größe: 689, herkunft: 'Southblue', arc: 'Jaya' }, 
+ 'Gekko Moriah': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Thriller Bark Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '320 Mio.', größe: 692, herkunft: 'Westblue', arc: 'Thriller Bark' }, 
+ 'Gin': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Gin', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '12 Mio.', größe: 186, herkunft: 'Eastblue', arc: 'Baratie' }, 
+ 'Boa Hancock': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Kuja Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾', '👑'], kopfgeld: '80 Mio.', größe: 191, herkunft: 'Calmbelt', arc: 'Amazon Lily' }, 
+ 'Bartolomeo': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Barto Club', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '200 Mio.', größe: 220, herkunft: 'Eastblue', arc: 'Dressrosa' }, 
+ 'Bentham (Bon Clay)': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Newkama Land', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '32 Mio.', größe: 238, herkunft: 'Eastblue', arc: 'Little Garden' }, 
+ 'Benn Beckman': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Rothaar Piraten', teufelsfrucht: 'Keine', haki: ['🦾'], kopfgeld: '0', größe: 206, herkunft: 'Northblue', arc: 'Romance Dawn' }, 
+ 'Bepo': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Heart Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '500', größe: 240, herkunft: 'Grand Line', arc: 'Sabaody Archapelago' }, 
+ 'Morgans': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Weltwirtschaftszeitung', teufelsfrucht: 'Zoan', haki: ['❌'], kopfgeld: '0', größe: 305, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Belle-Mère': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 186, herkunft: 'Eastblue', arc: 'Arlong Park' }, 
+ 'Basil Hawkins': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Hawkings Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '320 Mio.', größe: 210, herkunft: 'Northblue', arc: 'Sabaody Archipelago' }, 
+ 'Blueno': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 258, herkunft: 'Northblue', arc: 'Water 7' }, 
+ 'Jesus Burgess': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Blackbeard Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '20 Mio.', größe: 355, herkunft: 'Grand Line', arc: 'Jaya' }, 
+ 'Kozuki Hiyori': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 170, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Hiluluk': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Keine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 213, herkunft: 'Grand Line', arc: 'Drum Island' }, 
+ 'Hody Jones': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Neue Fischmenschen Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 331, herkunft: 'Grand Line', arc: 'Fish-Man Island' }, 
+ 'Hogback': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Thriller Bark Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 223, herkunft: 'Westblue', arc: 'Thriller Bark' }, 
+ 'Nojiko': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Keine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 170, herkunft: 'Eastblue', arc: 'Arlong Park' }, 
+ 'Ulti': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Bestien Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '400 Mio.', größe: 173, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Urouge': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Sündiger Mönch Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '108 Mio.', größe: 388, herkunft: 'Himmelsinseln', arc: 'Sabaody Archipelago' }, 
+ 'Jabra': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'CP9', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 212, herkunft: 'Northblue', arc: 'Enies Lobby' }, 
+ 'Marco': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Whitebeard Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '1,4 Mrd.', größe: 203, herkunft: 'Grand Line', arc: 'Jaya' }, 
+ 'Monet': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Logia', haki: ['❌'], kopfgeld: '0', größe: 227, herkunft: 'Northblue', arc: 'Punk Hazard' }, 
+ 'Kozuki Momonosuke': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Zoan', haki: ['👁️'], kopfgeld: '0', größe: 110, herkunft: 'Grand Line', arc: 'Punk Hazard' }, 
+ 'Magellan': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Impel Down', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 491, herkunft: 'Grand Line', arc: 'Impel Down' }, 
+ 'Kozuki Oden': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑'], kopfgeld: '0', größe: 382, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Iceburg': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Galeera Company', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 199, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Kinemon': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 295, herkunft: 'Grand Line', arc: 'Punk Hazard' }, 
+ 'Kawamatsu': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Kozuki Familie', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 271, herkunft: 'Unbekannt', arc: 'Wano Country' }, 
+ 'Koala': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 160, herkunft: 'Unbekannt', arc: 'Fish-Man Island' }, 
+ 'Kuro': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Black Cat Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '16 Mio.', größe: 207, herkunft: 'Eastblue', arc: 'Syrup Village' }, 
+ 'Kaya': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Keine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 169, herkunft: 'Eastblue', arc: 'Syrup Village' }, 
+ 'Perona': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Dracule Mihawk', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 160, herkunft: 'Westblue', arc: 'Thriller Bark' }, 
+ 'Paulie': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Galeera Company', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 195, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Pekoms': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Big Mom Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '330 Mio.', größe: 232, herkunft: 'Grand Line', arc: 'Fish-Man Island' }, 
+ 'Pika': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['👁️', '🦾'], kopfgeld: '99 Mio.', größe: 470, herkunft: 'Northblue', arc: 'Dressrosa' }, 
+ 'Kalgara': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Shandia', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '0', größe: 222, herkunft: 'Grand Line', arc: 'Skypiea' }, 
+ 'Wapol': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Drum Island', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 207, herkunft: 'Grand Line', arc: 'Arabasta' }, 
+ 'Fujin': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Bestien Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 200, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Gaimon': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Keine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 130, herkunft: 'Eastblue', arc: 'Syrup Village' }, 
+ 'Scien': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Bestien Piraten', teufelsfrucht: 'Zoan', haki: ['👁️', '🦾'], kopfgeld: '1,32 Mrd.', größe: 612, herkunft: 'Grand Line', arc: 'Wano Country' }, 
+ 'Matsuge': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Super-Spottschnabel-Enten-Trupp', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 190, herkunft: 'Grand Line', arc: 'Arabasta' }, 
+ 'Karoo': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Baroque Works', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 150, herkunft: 'Grand Line', arc: 'Arabasta' }, 
+ 'Nerona Imu': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Weltregierung', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 1, herkunft: 'Red Line', arc: 'Whole Cake Island' }, 
+ 'Vegapunk': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Weltregierung', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 314, herkunft: 'Grand Line', arc: 'Egghead' }, 
+ 'Chouchou': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Hocker', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 40, herkunft: 'Eastblue', arc: 'Orange Town' }, 
+ 'Vinsmoke Yonji': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Vinsmoke Familie', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 194, herkunft: 'Northblue', arc: 'Whole Cake island' }, 
+ 'Vinsmoke Ichiji': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Vinsmoke Familie', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 186, herkunft: 'Northblue', arc: 'Whole Cake Island' }, 
+ 'Pagaya': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Keine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 179, herkunft: 'Grand Line', arc: 'Skypiea' }, 
+ 'Hatchan': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Arlong-Bande', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '8 Mio.', größe: 220, herkunft: 'Grand Line', arc: 'Arlong Park' }, 
+ 'Amazon': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Skypiea', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 120, herkunft: 'Grand Line', arc: 'Skypiea' }, 
+ 'Cabaji': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 208, herkunft: 'Eastblue', arc: 'Orange Town' }, 
+ 'Alvida': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Cross Guild', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '5 Mio.', größe: 198, herkunft: 'East Blue', arc: 'Romance Dawn' }, 
+ 'Shoujou': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Saruyama Allianz', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '36 Mio.', größe: 351, herkunft: 'Southblue', arc: 'Jaya' }, 
+ 'Sentomaru': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '0', größe: 279, herkunft: 'Grand Line', arc: 'Summit War' }, 
+ 'Tom': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Toms Arbeiter', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 296, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Momoo': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Arlong-Bande', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 3600, herkunft: 'Grand Line', arc: 'Arlong Park' }, 
+ 'Axe-Hand Morgan': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Marine', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 285, herkunft: 'Grand Line', arc: 'Romance Dawn' }, 
+ 'Laboon': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Rumbar Piraten', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 40000, herkunft: 'Westblue', arc: 'Reverse Mountain' }, 
+ 'Pappag': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Takoyaki 8', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 50, herkunft: 'Grand Line', arc: 'Sabaody Archipelago' }, 
+ 'Hattori': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Cipher Pol No.0', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 25, herkunft: 'Grand Line', arc: 'Water 7' }, 
+ 'Hajrudin': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Grand Fleet Strohhüte', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 2200, herkunft: 'Grand Line', arc: 'Dressrosa' }, 
+ 'Aisa': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Shandia', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '0', größe: 140, herkunft: 'Grand Line', arc: 'Skypiea' }, 
+ 'Pandaman': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Oda', teufelsfrucht: 'Keine', haki: ['👁️', '🦾', '👑' ], kopfgeld: '3,3 Mrd.', größe: 200, herkunft: 'Tibet', arc: 'Romance Dawn' }, 
+ 'Lindbergh': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Revolutionsarmee', teufelsfrucht: 'Keine', haki: ['👁️', '🦾'], kopfgeld: '316 Mio.', größe: 149, herkunft: 'Grand Line', arc: 'Whole Cake Island' }, 
+ 'Ohm': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Gott Armee', teufelsfrucht: 'Keine', haki: ['👁️'], kopfgeld: '0', größe: 189, herkunft: 'Himmelsinseln', arc: 'Skypiea' }, 
+ 'Machvise': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Donquixote Piraten', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '11 Mio.', größe: 440, herkunft: 'Northblue', arc: 'Dressrosa' }, 
+ 'Braham': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Shandia', teufelsfrucht: 'Keine', haki: ['❌'], kopfgeld: '0', größe: 179, herkunft: 'Himmelsinseln', arc: 'Skypiea' }, 
+ 'Gem (Mr.5)': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Männlich', zugehörigkeit: 'Baroque Works', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '10 Mio.', größe: 197, herkunft: 'Southblue', arc: 'Arabasta' }, 
+ 'Viola': {bild: 'https://link-zu-luffys-bild.jpg', geschlecht: 'Weiblich', zugehörigkeit: 'Dressroa Königreich', teufelsfrucht: 'Paramecia', haki: ['❌'], kopfgeld: '0', größe: 178, herkunft: 'Grand Line', arc: 'Dressrosa' },
+
+        };
+ 
+        let selectedCharacter = null;
+        let guessedCharacters = new Set();
+ 
+        function chooseRandomCharacter() {
+            const keys = Object.keys(characters);
+            selectedCharacter = characters[keys[Math.floor(Math.random() * keys.length)]];
+        }
+ 
+        function populateCharacterList() {
+            const characterList = document.getElementById('characterList');
+            for (const characterName in characters) {
+                const option = document.createElement('option');
+                option.value = characterName;
+                characterList.appendChild(option);
+            }
+        }
+ 
+        // ...
+ 
+function getClass(value, correctValue, property) {
+    if (property === 'haki') {
+        const hasCommonHaki = value.some(haki => correctValue.includes(haki));
+        return hasCommonHaki ? 'correct' : 'incorrect'; // Grün, wenn übereinstimmung, Rot, wenn nicht
+    } else if (['herkunft', 'arc'].includes(property)) {
+        const isMatch = value.toLowerCase() === correctValue.toLowerCase();
+        return isMatch ? 'correct' : 'incorrect'; // Grün, wenn stimmt, Rot, wenn nicht
+    }
+ 
+    return value === correctValue ? 'correct' : 'incorrect'; // Für die anderen Eigenschaften
+}
+ 
+function getDirection(value, correctValue, property) {
+    if (typeof value === 'number' && typeof correctValue === 'number') {
+        if (value > correctValue) {
+            return '↓'; // Pfeil nach unten, wenn Wert größer ist
+        } else if (value < correctValue) {
+            return '↑'; // Pfeil nach oben, wenn Wert kleiner ist
+        }
+    }
+    return ''; // Kein Pfeil, wenn nicht nummerisch
+}
+ 
+function checkCharacter() {
+
+    const input = document.getElementById('name').value.trim();
+    if (!input) {
+        alert("Bitte gib einen Namen ein!");
+        return;
+    }
+    if (guessedCharacters.has(input)) {
+        alert("Diesen Charakter hast du bereits geraten!");
+        return;
+    }
+ 
+    const guessedCharacter = characters[input];
+    if (!guessedCharacter) {
+        alert("Charakter nicht gefunden!");
+        return;
+    }
+ 
+    guessedCharacters.add(input);
+ 
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <img src="${guessedCharacter.bild}" alt="${input}" 
+             style="width: 90px; height: 90px; border-radius: 5px; object-fit: cover;">
+        </td>
+        <td>${input}</td>
+        <td class="${getClass(guessedCharacter.geschlecht, selectedCharacter.geschlecht)}">${guessedCharacter.geschlecht}</td>
+        <td class="${getClass(guessedCharacter.zugehörigkeit, selectedCharacter.zugehörigkeit)}">${guessedCharacter.zugehörigkeit}</td>
+        <td class="${getClass(guessedCharacter.teufelsfrucht, selectedCharacter.teufelsfrucht)}">${guessedCharacter.teufelsfrucht}</td>
+        <td class="${getClass(guessedCharacter.haki, selectedCharacter.haki, 'haki')}">${guessedCharacter.haki.join(' ')}</td>
+        <td class="${getClass(guessedCharacter.kopfgeld.replace(' Mio.', '').replace(' Mrd.', '').replace(' ', '').replace('.', ''), selectedCharacter.kopfgeld.replace(' Mio.', '').replace(' Mrd.', '').replace(' ', '').replace('.', ''), 'kopfgeld')}" title="${guessedCharacter.kopfgeld}">${guessedCharacter.kopfgeld} ${getDirection(parseFloat(guessedCharacter.kopfgeld.replace(' Mio.', '').replace(' Mrd.', '').replace(' ', '').replace('.', '')), parseFloat(selectedCharacter.kopfgeld.replace(' Mio.', '').replace(' Mrd.', '').replace(' ', '').replace('.', '')), 'kopfgeld')}</td>
+        <td class="${getClass(guessedCharacter.größe, selectedCharacter.größe, 'größe')}" title="${guessedCharacter.größe} cm">${guessedCharacter.größe} cm ${getDirection(guessedCharacter.größe, selectedCharacter.größe, 'größe')}</td>
+        <td class="${getClass(guessedCharacter.herkunft, selectedCharacter.herkunft)}">${guessedCharacter.herkunft}</td>
+        <td class="${getClass(guessedCharacter.arc, selectedCharacter.arc)}" title="${guessedCharacter.arc}">${guessedCharacter.arc} ${getDirection(guessedCharacter.arc, selectedCharacter.arc, 'arc')}</td>
+    `;
+ 
+    // Füge die neue Zeile am Anfang des Table-Bodys hinzu
+    document.querySelector('#result-table tbody').insertBefore(row, document.querySelector('#result-table tbody').firstChild);
+}
+        window.onload = function () {
+            chooseRandomCharacter();
+            populateCharacterList();
+        };
+    </script>
+</body>
+ 
+</html>
